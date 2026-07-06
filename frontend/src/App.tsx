@@ -14,6 +14,13 @@ import { AlumniDashboardPage } from './pages/alumni/AlumniDashboardPage';
 import { ProfileEditPage } from './pages/alumni/ProfileEditPage';
 import { AlumniQuestionsPage } from './pages/alumni/AlumniQuestionsPage';
 import { ProtectedRoute } from './router/ProtectedRoute';
+import { AdminLayout } from './components/layout/AdminLayout';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminInvitesPage } from './pages/admin/AdminInvitesPage';
+import { AdminAlumniPage } from './pages/admin/AdminAlumniPage';
+import { AdminProfileModerationPage } from './pages/admin/AdminProfileModerationPage';
+import { AdminQuestionsPage } from './pages/admin/AdminQuestionsPage';
+import { AdminTagsPage } from './pages/admin/AdminTagsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -52,6 +59,23 @@ export default function App() {
                 <Route index element={<AlumniDashboardPage />} />
                 <Route path="profile" element={<ProfileEditPage />} />
                 <Route path="questions" element={<AlumniQuestionsPage />} />
+              </Route>
+
+              {/* Admin panel */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute role="ADMIN">
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboardPage />} />
+                <Route path="invites" element={<AdminInvitesPage />} />
+                <Route path="alumni" element={<AdminAlumniPage />} />
+                <Route path="profiles" element={<AdminProfileModerationPage />} />
+                <Route path="questions" element={<AdminQuestionsPage />} />
+                <Route path="tags" element={<AdminTagsPage />} />
               </Route>
 
               <Route element={<PublicLayout />}>
