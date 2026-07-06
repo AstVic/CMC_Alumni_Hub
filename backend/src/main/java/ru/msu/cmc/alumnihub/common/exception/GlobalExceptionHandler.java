@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponseException;
@@ -29,6 +30,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex,
                                                               HttpServletRequest req) {
         return build(HttpStatus.UNAUTHORIZED, "Неверный email или пароль", req);
+    }
+
+    @ExceptionHandler(AccountStatusException.class)
+    public ResponseEntity<ErrorResponse> handleAccountStatus(AccountStatusException ex,
+                                                            HttpServletRequest req) {
+        // Disabled/locked account -> 403.
+        return build(HttpStatus.FORBIDDEN, "Аккаунт заблокирован", req);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -13,4 +13,8 @@ public interface AlumniProfileRepository
     Optional<AlumniProfile> findByUserId(Long userId);
 
     long countByStatus(ProfileStatus status);
+
+    java.util.List<AlumniProfile> findAllByOrderByUpdatedAtDesc();
+
+    java.util.List<AlumniProfile> findByStatusOrderByUpdatedAtDesc(ProfileStatus status);
 }
