@@ -7,6 +7,13 @@ import { LandingPage } from './pages/public/LandingPage';
 import { CatalogPage } from './pages/public/CatalogPage';
 import { AlumniDetailPage } from './pages/public/AlumniDetailPage';
 import { LoginPage } from './pages/auth/LoginPage';
+import { InviteRegisterPage } from './pages/auth/InviteRegisterPage';
+import { AlumniLayout } from './components/layout/AlumniLayout';
+import { OnboardingPage } from './pages/alumni/OnboardingPage';
+import { AlumniDashboardPage } from './pages/alumni/AlumniDashboardPage';
+import { ProfileEditPage } from './pages/alumni/ProfileEditPage';
+import { AlumniQuestionsPage } from './pages/alumni/AlumniQuestionsPage';
+import { ProtectedRoute } from './router/ProtectedRoute';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -21,6 +28,32 @@ export default function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/invite/register" element={<InviteRegisterPage />} />
+
+              {/* Alumni onboarding (no sidebar) */}
+              <Route
+                path="/alumni/onboarding"
+                element={
+                  <ProtectedRoute role="ALUMNI">
+                    <OnboardingPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Alumni cabinet */}
+              <Route
+                path="/alumni"
+                element={
+                  <ProtectedRoute role="ALUMNI">
+                    <AlumniLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AlumniDashboardPage />} />
+                <Route path="profile" element={<ProfileEditPage />} />
+                <Route path="questions" element={<AlumniQuestionsPage />} />
+              </Route>
+
               <Route element={<PublicLayout />}>
                 <Route index element={<LandingPage />} />
                 <Route path="catalog" element={<CatalogPage />} />
