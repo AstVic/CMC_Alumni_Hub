@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import ru.msu.cmc.alumnihub.user.entity.Role;
 
 import java.time.Instant;
 
@@ -38,6 +39,11 @@ public class AlumniInvite {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InviteStatus status = InviteStatus.CREATED;
+
+    /** Which kind of account this invite creates on registration. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.ALUMNI;
 
     @Column(name = "created_by_admin_id", nullable = false)
     private Long createdByAdminId;

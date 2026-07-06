@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Invite lifecycle: creation, resend, revoke, validation and alumni
- * self-registration. Only token hashes are stored; email always comes from the
- * invite, never from the client.
+ * Invite lifecycle: creation, resend, revoke, validation and account
+ * registration. Only token hashes are stored; email and role always come from
+ * the invite, never from the client.
  */
 @Service
 public class InviteService {
@@ -74,7 +74,7 @@ public class InviteService {
     }
 
     @Transactional
-    public InviteDto createInvite(CreateInviteRequest request, Long adminId) {
+    public InviteDto createInvite(CreateInviteRequest request, Long adminId, Role role) {
         String email = request.email().trim().toLowerCase();
         if (userRepository.existsByEmail(email)) {
             throw new BadRequestException("Пользователь с таким email уже зарегистрирован");
@@ -86,29 +86,30 @@ public class InviteService {
         String rawToken = tokenGenerator.generateRawToken();
         AlumniInvite invite = new AlumniInvite();
         invite.setEmail(email);
+        invite.setRole(role);
         invite.setTokenHash(tokenGenerator.hash(rawToken));
         invite.setStatus(InviteStatus.CREATED);
         invite.setCreatedByAdminId(adminId);
         invite.setExpiresAt(Instant.now().plus(expiryDays, ChronoUnit.DAYS));
         invite.setNote(request.note());
         inviteRepository.save(invite);
-        log.info("Invite created id={} email={} by admin={}", invite.getId(), email, adminId);
+        log.info("Invite created id={} email={} role={} by admin={}", invite.getId(), email, role, adminId);
 
         deliver(invite, rawToken);
         return InviteDto.from(invite);
     }
 
     @Transactional(readOnly = true)
-    public List<InviteDto> listInvites() {
-        return inviteRepository.findAllByOrderByCreatedAtDesc().stream()
+    public List<InviteDto> listInvites(Role role) {
+        return inviteRepository.findByRoleOrderByCreatedAtDesc(role).stream()
                 .map(this::withLazyExpiry)
                 .map(InviteDto::from)
                 .toList();
     }
 
     @Transactional
-    public InviteDto resend(Long id) {
-        AlumniInvite invite = getInvite(id);
+    public InviteDto resend(Long id, Role expectedRole) {
+        AlumniInvite invite = getInvite(id, expectedRole);
         if (invite.getStatus() == InviteStatus.USED) {
             throw new BadRequestException("Приглашение уже использовано");
         }
@@ -127,8 +128,8 @@ public class InviteService {
     }
 
     @Transactional
-    public InviteDto revoke(Long id) {
-        AlumniInvite invite = getInvite(id);
+    public InviteDto revoke(Long id, Role expectedRole) {
+        AlumniInvite invite = getInvite(id, expectedRole);
         if (invite.getStatus() == InviteStatus.USED) {
             throw new BadRequestException("Нельзя отозвать использованное приглашение");
         }
@@ -157,20 +158,27 @@ public class InviteService {
         if (userRepository.existsByEmail(invite.getEmail())) {
             throw new BadRequestException("Аккаунт с этим email уже существует");
         }
+        if (invite.getRole() == Role.ALUMNI
+                && (request.fullName() == null || request.fullName().isBlank())) {
+            throw new BadRequestException("Укажите ФИО выпускника");
+        }
 
-        // Email always comes from the invite — never from the request.
+        // Email and role always come from the invite — never from the request.
         User user = new User();
         user.setEmail(invite.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setRole(Role.ALUMNI);
+        user.setRole(invite.getRole());
         user.setEnabled(true);
         userRepository.save(user);
 
-        AlumniProfile profile = new AlumniProfile();
-        profile.setUserId(user.getId());
-        profile.setFullName(request.fullName().trim());
-        profile.setStatus(ProfileStatus.DRAFT);
-        profileRepository.save(profile);
+        // Only alumni get a profile card; admins do not.
+        if (invite.getRole() == Role.ALUMNI) {
+            AlumniProfile profile = new AlumniProfile();
+            profile.setUserId(user.getId());
+            profile.setFullName(request.fullName().trim());
+            profile.setStatus(ProfileStatus.DRAFT);
+            profileRepository.save(profile);
+        }
 
         invite.setStatus(InviteStatus.USED);
         invite.setUsedAt(Instant.now());
@@ -184,7 +192,9 @@ public class InviteService {
     // ---- helpers ----
 
     private void deliver(AlumniInvite invite, String rawToken) {
-        emailService.send(invite.getEmail(), InviteEmailComposer.SUBJECT, emailComposer.body(rawToken));
+        emailService.send(invite.getEmail(),
+                emailComposer.subject(invite.getRole()),
+                emailComposer.body(rawToken, invite.getRole()));
         invite.setStatus(InviteStatus.SENT);
         log.info("Invite sent id={} email={}", invite.getId(), invite.getEmail());
     }
@@ -208,15 +218,20 @@ public class InviteService {
     private InviteValidationResponse classify(AlumniInvite invite) {
         withLazyExpiry(invite);
         return switch (invite.getStatus()) {
-            case CREATED, SENT -> InviteValidationResponse.valid(invite.getEmail());
+            case CREATED, SENT -> InviteValidationResponse.valid(invite.getEmail(), invite.getRole());
             case USED -> InviteValidationResponse.of(InviteValidationResponse.Result.USED);
             case REVOKED -> InviteValidationResponse.of(InviteValidationResponse.Result.REVOKED);
             case EXPIRED -> InviteValidationResponse.of(InviteValidationResponse.Result.EXPIRED);
         };
     }
 
-    private AlumniInvite getInvite(Long id) {
-        return inviteRepository.findById(id)
+    private AlumniInvite getInvite(Long id, Role expectedRole) {
+        AlumniInvite invite = inviteRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Приглашение не найдено"));
+        // Do not let an endpoint for one invite type manage another type by ID.
+        if (invite.getRole() != expectedRole) {
+            throw new NotFoundException("Приглашение не найдено");
+        }
+        return invite;
     }
 }

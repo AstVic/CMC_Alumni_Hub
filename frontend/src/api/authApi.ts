@@ -10,4 +10,15 @@ export const authApi = {
     const { data } = await http.get<User>('/auth/me');
     return data;
   },
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+    newPasswordConfirm: string,
+  ): Promise<void> {
+    await http.post('/auth/change-password', {
+      currentPassword,
+      newPassword,
+      newPasswordConfirm,
+    });
+  },
 };

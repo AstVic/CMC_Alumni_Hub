@@ -14,7 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.msu.cmc.alumnihub.admin.dto.AdminAccountDto;
 import ru.msu.cmc.alumnihub.admin.dto.CreateAdminRequest;
 import ru.msu.cmc.alumnihub.admin.service.AdminAccountService;
+import ru.msu.cmc.alumnihub.invite.dto.CreateInviteRequest;
+import ru.msu.cmc.alumnihub.invite.dto.InviteDto;
+import ru.msu.cmc.alumnihub.invite.service.InviteService;
 import ru.msu.cmc.alumnihub.security.CurrentUserService;
+import ru.msu.cmc.alumnihub.user.entity.Role;
 
 import java.util.List;
 
@@ -27,11 +31,14 @@ import java.util.List;
 public class AdminAccountController {
 
     private final AdminAccountService adminAccountService;
+    private final InviteService inviteService;
     private final CurrentUserService currentUserService;
 
     public AdminAccountController(AdminAccountService adminAccountService,
+                                 InviteService inviteService,
                                  CurrentUserService currentUserService) {
         this.adminAccountService = adminAccountService;
+        this.inviteService = inviteService;
         this.currentUserService = currentUserService;
     }
 
@@ -55,5 +62,29 @@ public class AdminAccountController {
     @PatchMapping("/{id}/transfer-ownership")
     public AdminAccountDto transferOwnership(@PathVariable Long id) {
         return adminAccountService.transferOwnership(currentUserService.requireCurrentUserId(), id);
+    }
+
+    // ---- Admin invitations by email (owner only) ----
+
+    @GetMapping("/invites")
+    public List<InviteDto> listAdminInvites() {
+        return inviteService.listInvites(Role.ADMIN);
+    }
+
+    @PostMapping("/invites")
+    @ResponseStatus(HttpStatus.CREATED)
+    public InviteDto createAdminInvite(@Valid @RequestBody CreateInviteRequest request) {
+        return inviteService.createInvite(
+                request, currentUserService.requireCurrentUserId(), Role.ADMIN);
+    }
+
+    @PostMapping("/invites/{id}/resend")
+    public InviteDto resendAdminInvite(@PathVariable Long id) {
+        return inviteService.resend(id, Role.ADMIN);
+    }
+
+    @PatchMapping("/invites/{id}/revoke")
+    public InviteDto revokeAdminInvite(@PathVariable Long id) {
+        return inviteService.revoke(id, Role.ADMIN);
     }
 }

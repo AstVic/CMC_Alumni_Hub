@@ -114,6 +114,7 @@ export type InviteStatus = 'CREATED' | 'SENT' | 'USED' | 'EXPIRED' | 'REVOKED';
 export interface Invite {
   id: number;
   email: string;
+  role: Role;
   status: InviteStatus;
   createdAt: string;
   expiresAt: string;
@@ -127,6 +128,7 @@ export type InviteValidationResult = 'VALID' | 'INVALID' | 'EXPIRED' | 'USED' | 
 export interface InviteValidation {
   result: InviteValidationResult;
   email: string | null;
+  role: Role | null;
 }
 
 export interface AlumniQuestion {

@@ -123,6 +123,22 @@ export const adminApi = {
     const { data } = await http.patch<AdminAccount>(`/admin/admins/${id}/transfer-ownership`);
     return data;
   },
+  async listAdminInvites(): Promise<Invite[]> {
+    const { data } = await http.get<Invite[]>('/admin/admins/invites');
+    return data;
+  },
+  async createAdminInvite(email: string, note?: string): Promise<Invite> {
+    const { data } = await http.post<Invite>('/admin/admins/invites', { email, note });
+    return data;
+  },
+  async resendAdminInvite(id: number): Promise<Invite> {
+    const { data } = await http.post<Invite>(`/admin/admins/invites/${id}/resend`);
+    return data;
+  },
+  async revokeAdminInvite(id: number): Promise<Invite> {
+    const { data } = await http.patch<Invite>(`/admin/admins/invites/${id}/revoke`);
+    return data;
+  },
 
   // Tags
   async listTags(): Promise<Tag[]> {

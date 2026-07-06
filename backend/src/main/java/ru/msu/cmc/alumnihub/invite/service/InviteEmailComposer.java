@@ -2,14 +2,14 @@ package ru.msu.cmc.alumnihub.invite.service;
 
 import org.springframework.stereotype.Component;
 import ru.msu.cmc.alumnihub.config.properties.AppProperties;
+import ru.msu.cmc.alumnihub.user.entity.Role;
 
 /**
- * Builds the alumni invitation email (subject + body) with the registration link.
+ * Builds the invitation email (subject + body) with the registration link,
+ * adapted to the invited role (alumni or admin).
  */
 @Component
 public class InviteEmailComposer {
-
-    public static final String SUBJECT = "Приглашение в CMC Alumni Hub";
 
     private final String frontendUrl;
 
@@ -21,8 +21,17 @@ public class InviteEmailComposer {
         return frontendUrl + "/invite/register?token=" + rawToken;
     }
 
-    public String body(String rawToken) {
-        String link = inviteLink(rawToken);
+    public String subject(Role role) {
+        return role == Role.ADMIN
+                ? "Приглашение в администраторы CMC Alumni Hub"
+                : "Приглашение в CMC Alumni Hub";
+    }
+
+    public String body(String rawToken, Role role) {
+        return role == Role.ADMIN ? adminBody(rawToken) : alumniBody(rawToken);
+    }
+
+    private String alumniBody(String rawToken) {
         return """
                 Здравствуйте!
 
@@ -42,6 +51,28 @@ public class InviteEmailComposer {
 
                 С уважением,
                 команда CMC Alumni Hub
-                """.formatted(link);
+                """.formatted(inviteLink(rawToken));
+    }
+
+    private String adminBody(String rawToken) {
+        return """
+                Здравствуйте!
+
+                Вас пригласили стать администратором платформы CMC Alumni Hub.
+
+                По ссылке ниже вы можете создать аккаунт администратора и задать пароль:
+
+                %s
+
+                Ссылка действительна 7 дней.
+
+                После регистрации вам будут доступны модерация карточек и вопросов, \
+                управление приглашениями выпускников и тегами.
+
+                Если вы не ожидали это приглашение, просто проигнорируйте письмо.
+
+                С уважением,
+                команда CMC Alumni Hub
+                """.formatted(inviteLink(rawToken));
     }
 }

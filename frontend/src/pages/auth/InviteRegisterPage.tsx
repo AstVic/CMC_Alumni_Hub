@@ -59,6 +59,8 @@ export function InviteRegisterPage() {
     return <InviteExpired />;
   }
 
+  const isAdminInvite = data.role === 'ADMIN';
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -74,13 +76,13 @@ export function InviteRegisterPage() {
     try {
       const tokenResp = await publicApi.registerByInvite({
         token,
-        fullName: fullName.trim(),
+        fullName: isAdminInvite ? '' : fullName.trim(),
         password,
         passwordConfirm,
         acceptedRules,
       });
       setSession(tokenResp);
-      navigate('/alumni/onboarding', { replace: true });
+      navigate(isAdminInvite ? '/admin' : '/alumni/onboarding', { replace: true });
     } catch (err) {
       setError(apiErrorMessage(err, 'Не удалось завершить регистрацию'));
     } finally {
@@ -90,7 +92,9 @@ export function InviteRegisterPage() {
 
   return (
     <AuthShell>
-      <h1 className="mb-1 text-2xl font-semibold text-brand-950">Регистрация выпускника</h1>
+      <h1 className="mb-1 text-2xl font-semibold text-brand-950">
+        {isAdminInvite ? 'Регистрация администратора' : 'Регистрация выпускника'}
+      </h1>
       <p className="mb-6 text-sm text-brand-900/60">
         Вы приглашены присоединиться к платформе. Создайте аккаунт.
       </p>
@@ -100,16 +104,18 @@ export function InviteRegisterPage() {
           <Input value={data.email ?? ''} disabled readOnly />
           <p className="mt-1 text-xs text-brand-900/50">Email привязан к приглашению.</p>
         </div>
-        <div>
-          <Label htmlFor="fullName">ФИО</Label>
-          <Input
-            id="fullName"
-            required
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Иван Иванов"
-          />
-        </div>
+        {!isAdminInvite && (
+          <div>
+            <Label htmlFor="fullName">ФИО</Label>
+            <Input
+              id="fullName"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Иван Иванов"
+            />
+          </div>
+        )}
         <div>
           <Label htmlFor="password">Пароль</Label>
           <Input
