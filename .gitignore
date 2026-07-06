@@ -1,0 +1,35 @@
+# ---- IDE ----
+.idea/
+.vscode/
+*.iml
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Env / secrets ----
+.env
+.env.local
+*.env.local
+!.env.example
+
+# ---- Java / Maven (backend) ----
+backend/target/
+backend/.mvn/
+!backend/.mvn/wrapper/maven-wrapper.properties
+*.class
+*.log
+
+# ---- Node / Vite (frontend) ----
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-error.log*
+
+# ---- Docker ----
+*.pid
+
+# ---- Uploads (local photo storage) ----
+uploads/
+backend/uploads/
