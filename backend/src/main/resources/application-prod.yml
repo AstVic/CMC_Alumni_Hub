@@ -1,0 +1,22 @@
+# Production profile.
+# Connects to a cloud PostgreSQL over SSL. All secrets MUST come from the
+# environment — the app fails fast at startup if DB_URL / JWT_SECRET are missing.
+spring:
+  datasource:
+    # Cloud providers (Neon, Supabase, Yandex Cloud, RDS...) require SSL.
+    # Append ?sslmode=require to DB_URL, e.g.
+    #   jdbc:postgresql://host:5432/db?sslmode=require
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    root: INFO
+    ru.msu.cmc.alumnihub: INFO
+    org.springframework.security: WARN
