@@ -44,7 +44,8 @@ services:
         # Served same-origin; nginx proxies /api to the backend service.
         VITE_API_URL: /api
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "80:80"
     restart: unless-stopped

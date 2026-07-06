@@ -41,13 +41,13 @@ class InviteServiceTest {
     @Mock EmailService emailService;
     @Mock PasswordEncoder passwordEncoder;
     @Mock JwtService jwtService;
-    @Mock AppProperties appProperties;
-
     private InviteService inviteService;
 
     @BeforeEach
     void setUp() {
-        when(appProperties.invite()).thenReturn(new AppProperties.Invite(7));
+        AppProperties appProperties = new AppProperties(
+                "http://localhost:5173", false, null, null,
+                new AppProperties.Invite(7), null, null, null);
         inviteService = new InviteService(
                 inviteRepository,
                 userRepository,

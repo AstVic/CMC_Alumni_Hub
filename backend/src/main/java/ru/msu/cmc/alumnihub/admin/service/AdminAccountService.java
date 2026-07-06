@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.msu.cmc.alumnihub.admin.dto.AdminAccountDto;
 import ru.msu.cmc.alumnihub.admin.dto.CreateAdminRequest;
 import ru.msu.cmc.alumnihub.common.exception.BadRequestException;
+import ru.msu.cmc.alumnihub.common.exception.ConflictException;
 import ru.msu.cmc.alumnihub.common.exception.NotFoundException;
 import ru.msu.cmc.alumnihub.user.entity.Role;
 import ru.msu.cmc.alumnihub.user.entity.User;
@@ -43,7 +44,7 @@ public class AdminAccountService {
     public AdminAccountDto createAdmin(CreateAdminRequest request) {
         String email = request.email().trim().toLowerCase();
         if (userRepository.existsByEmail(email)) {
-            throw new BadRequestException("Пользователь с таким email уже существует");
+            throw new ConflictException("Пользователь с таким email уже существует");
         }
         User admin = new User();
         admin.setEmail(email);
@@ -52,7 +53,7 @@ public class AdminAccountService {
         admin.setEnabled(true);
         admin.setOwner(false);
         userRepository.save(admin);
-        log.info("Owner created new admin: {}", email);
+        log.info("Owner created admin userId={}", admin.getId());
         return AdminAccountDto.from(admin);
     }
 
@@ -66,7 +67,7 @@ public class AdminAccountService {
             throw new BadRequestException("Нельзя заблокировать главного администратора");
         }
         target.setEnabled(!blocked);
-        log.info("Owner set admin {} blocked={}", target.getEmail(), blocked);
+        log.info("Owner set admin userId={} blocked={}", target.getId(), blocked);
         return AdminAccountDto.from(target);
     }
 
@@ -88,7 +89,8 @@ public class AdminAccountService {
 
         currentOwner.setOwner(false);
         target.setOwner(true);
-        log.info("Ownership transferred from {} to {}", currentOwner.getEmail(), target.getEmail());
+        log.info("Ownership transferred from userId={} to userId={}",
+                currentOwner.getId(), target.getId());
         return AdminAccountDto.from(target);
     }
 

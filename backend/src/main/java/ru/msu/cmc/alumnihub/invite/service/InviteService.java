@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.msu.cmc.alumnihub.common.exception.BadRequestException;
+import ru.msu.cmc.alumnihub.common.exception.ConflictException;
 import ru.msu.cmc.alumnihub.common.exception.NotFoundException;
 import ru.msu.cmc.alumnihub.config.properties.AppProperties;
 import ru.msu.cmc.alumnihub.email.EmailService;
@@ -77,10 +78,10 @@ public class InviteService {
     public InviteDto createInvite(CreateInviteRequest request, Long adminId, Role role) {
         String email = request.email().trim().toLowerCase();
         if (userRepository.existsByEmail(email)) {
-            throw new BadRequestException("Пользователь с таким email уже зарегистрирован");
+            throw new ConflictException("Пользователь с таким email уже зарегистрирован");
         }
         if (inviteRepository.existsByEmailAndStatusIn(email, ACTIVE_STATUSES)) {
-            throw new BadRequestException("Для этого email уже есть активное приглашение");
+            throw new ConflictException("Для этого email уже есть активное приглашение");
         }
 
         String rawToken = tokenGenerator.generateRawToken();
@@ -93,7 +94,7 @@ public class InviteService {
         invite.setExpiresAt(Instant.now().plus(expiryDays, ChronoUnit.DAYS));
         invite.setNote(request.note());
         inviteRepository.save(invite);
-        log.info("Invite created id={} email={} role={} by admin={}", invite.getId(), email, role, adminId);
+        log.info("Invite created id={} role={} by admin={}", invite.getId(), role, adminId);
 
         deliver(invite, rawToken);
         return InviteDto.from(invite);
@@ -121,7 +122,7 @@ public class InviteService {
         invite.setTokenHash(tokenGenerator.hash(rawToken));
         invite.setExpiresAt(Instant.now().plus(expiryDays, ChronoUnit.DAYS));
         invite.setStatus(InviteStatus.CREATED);
-        log.info("Invite resend id={} email={}", invite.getId(), invite.getEmail());
+        log.info("Invite resend id={}", invite.getId());
 
         deliver(invite, rawToken);
         return InviteDto.from(invite);
@@ -135,7 +136,7 @@ public class InviteService {
         }
         invite.setStatus(InviteStatus.REVOKED);
         invite.setRevokedAt(Instant.now());
-        log.info("Invite revoked id={} email={}", invite.getId(), invite.getEmail());
+        log.info("Invite revoked id={}", invite.getId());
         return InviteDto.from(invite);
     }
 
@@ -156,7 +157,7 @@ public class InviteService {
             throw new BadRequestException("Приглашение недействительно: " + result);
         }
         if (userRepository.existsByEmail(invite.getEmail())) {
-            throw new BadRequestException("Аккаунт с этим email уже существует");
+            throw new ConflictException("Аккаунт с этим email уже существует");
         }
         if (invite.getRole() == Role.ALUMNI
                 && (request.fullName() == null || request.fullName().isBlank())) {
@@ -182,7 +183,8 @@ public class InviteService {
 
         invite.setStatus(InviteStatus.USED);
         invite.setUsedAt(Instant.now());
-        log.info("Invite used id={} email={} -> userId={}", invite.getId(), invite.getEmail(), user.getId());
+        log.info("Invite registration completed id={} role={} userId={}",
+                invite.getId(), invite.getRole(), user.getId());
 
         String access = jwtService.generateAccessToken(user);
         String refresh = jwtService.generateRefreshToken(user);
@@ -196,7 +198,7 @@ public class InviteService {
                 emailComposer.subject(invite.getRole()),
                 emailComposer.body(rawToken, invite.getRole()));
         invite.setStatus(InviteStatus.SENT);
-        log.info("Invite sent id={} email={}", invite.getId(), invite.getEmail());
+        log.info("Invite delivery accepted id={}", invite.getId());
     }
 
     private Optional<AlumniInvite> findValidatable(String rawToken) {

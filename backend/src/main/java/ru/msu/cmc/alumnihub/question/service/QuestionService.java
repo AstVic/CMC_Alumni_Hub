@@ -97,6 +97,8 @@ public class QuestionService {
         questionRepository.save(question);
 
         applyAutomaticModeration(question);
+        log.info("Question submitted id={} profileId={} moderationStatus={}",
+                question.getId(), profileId, question.getAiModerationStatus());
         return QuestionSubmissionResponse.received();
     }
 
@@ -190,6 +192,7 @@ public class QuestionService {
 
         moderationLogService.log(ModerationEntityType.QUESTION, question.getId(),
                 ModeratorType.ADMIN, "APPROVED", null);
+        log.info("Question moderation id={} decision=APPROVED", question.getId());
         return AdminQuestionDto.from(question, profile.getFullName());
     }
 
@@ -211,6 +214,7 @@ public class QuestionService {
         }
         moderationLogService.log(ModerationEntityType.QUESTION, question.getId(),
                 ModeratorType.ADMIN, "REJECTED", comment);
+        log.info("Question moderation id={} decision=REJECTED", question.getId());
         return AdminQuestionDto.from(question, alumniName);
     }
 

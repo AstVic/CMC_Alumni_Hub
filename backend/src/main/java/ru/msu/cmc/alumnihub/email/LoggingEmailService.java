@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Fallback used when SMTP is not configured: logs the email (including the
- * invite link) so the project boots and can be demoed without real SMTP.
+ * Fallback used when SMTP is not configured. Message content is deliberately
+ * not logged because invitation bodies contain one-time authentication tokens.
  */
 public class LoggingEmailService implements EmailService {
 
@@ -13,14 +13,12 @@ public class LoggingEmailService implements EmailService {
 
     @Override
     public void send(String to, String subject, String body) {
-        log.info("""
+        log.warn("Email suppressed because SMTP is not configured (recipientDomain={}, subject={})",
+                recipientDomain(to), subject);
+    }
 
-                ===== EMAIL (SMTP not configured, logging fallback) =====
-                To:      {}
-                Subject: {}
-                ---------------------------------------------------------
-                {}
-                =========================================================
-                """, to, subject, body);
+    private String recipientDomain(String address) {
+        int separator = address == null ? -1 : address.lastIndexOf('@');
+        return separator >= 0 ? address.substring(separator + 1) : "unknown";
     }
 }

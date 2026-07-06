@@ -2,6 +2,8 @@ package ru.msu.cmc.alumnihub.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -32,9 +34,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final AppProperties appProperties;
+    private final boolean production;
 
-    public SecurityConfig(AppProperties appProperties) {
+    public SecurityConfig(AppProperties appProperties, Environment environment) {
         this.appProperties = appProperties;
+        this.production = environment.acceptsProfiles(Profiles.of("prod"));
     }
 
     @Bean
@@ -51,22 +55,27 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers(
                                 "/api/public/**",
                                 "/api/auth/login",
                                 "/api/auth/refresh",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html")
-                        .permitAll()
-                        // Uploaded photos are served statically and are public.
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
-                        // Managing other admins is restricted to the owner (main admin).
-                        .requestMatchers("/api/admin/admins/**").hasRole("OWNER")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/alumni/**").hasRole("ALUMNI")
-                        .anyRequest().authenticated())
+                                "/actuator/health",
+                                "/actuator/health/**")
+                            .permitAll();
+                    if (!production) {
+                        auth.requestMatchers(
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html")
+                                .permitAll();
+                    }
+                    auth.requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                            .requestMatchers("/api/admin/admins/**").hasRole("OWNER")
+                            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                            .requestMatchers("/api/alumni/**").hasRole("ALUMNI")
+                            .anyRequest().authenticated();
+                })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -95,13 +104,21 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(appProperties.frontendUrl()));
+        config.setAllowedOrigins(List.of(normalizeOrigin(appProperties.frontendUrl())));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    private String normalizeOrigin(String origin) {
+        if (origin == null) {
+            return "";
+        }
+        return origin.strip().replaceFirst("/+$", "");
     }
 }

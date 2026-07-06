@@ -15,6 +15,13 @@ spring:
   jpa:
     show-sql: false
 
+# OpenAPI is a development aid and is not exposed by a production instance.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 logging:
   level:
     root: INFO

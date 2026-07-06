@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -49,7 +50,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 if (jwtService.isAccessToken(claims)) {
                     authenticate(request, claims.getSubject());
                 }
-            } catch (JwtException | IllegalArgumentException ex) {
+            } catch (JwtException | IllegalArgumentException | UsernameNotFoundException ex) {
                 // Invalid token -> stay anonymous; protected endpoints will 401/403.
                 SecurityContextHolder.clearContext();
             }
@@ -62,6 +63,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // subject is the user id; load by id is cheaper, but we load by username
         // through UserDetailsService for consistency with the auth manager.
         UserDetails userDetails = userDetailsService.loadUserById(Long.valueOf(email));
+        if (!userDetails.isEnabled()) {
+            return;
+        }
         var authToken = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

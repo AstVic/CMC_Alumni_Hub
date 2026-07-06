@@ -14,11 +14,15 @@ RUN mvn -B -q clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Non-root user for safety.
-RUN addgroup -S app && adduser -S app -G app
+# Non-root user for safety. wget is used only by the container healthcheck.
+RUN apk add --no-cache wget \
+    && addgroup -S app \
+    && adduser -S app -G app
 USER app
 
 COPY --from=build /build/target/*.jar app.jar
 
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:8080/actuator/health || exit 1
 ENTRYPOINT ["java", "-jar", "app.jar"]

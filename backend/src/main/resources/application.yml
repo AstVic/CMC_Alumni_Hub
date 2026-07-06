@@ -47,6 +47,23 @@ spring:
 
 server:
   port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-exception: false
+
+# Expose only the minimal endpoint needed by Docker and monitoring. Health
+# details stay private to avoid leaking database or infrastructure metadata.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
 
 # Application-specific settings (bound via @ConfigurationProperties).
 app:
@@ -58,7 +75,9 @@ app:
     email: ${ADMIN_EMAIL:admin@cmc.msu.ru}
     password: ${ADMIN_PASSWORD:admin123}
   jwt:
-    secret: ${JWT_SECRET}
+    # Empty is allowed during binding so the production validator can emit a
+    # clear fail-fast message. The local profile supplies a dev-only default.
+    secret: ${JWT_SECRET:}
     access-token-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:60}
     refresh-token-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
   invite:
@@ -73,5 +92,8 @@ app:
     ai-api-key: ${MODERATION_AI_API_KEY:}
 
 springdoc:
+  api-docs:
+    enabled: true
   swagger-ui:
+    enabled: true
     path: /swagger-ui.html

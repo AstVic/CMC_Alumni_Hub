@@ -9,4 +9,7 @@ public interface StorageService {
 
     /** Stores the file and returns a public URL path (e.g. {@code /uploads/xxx.jpg}). */
     String storeImage(MultipartFile file);
+
+    /** Deletes a previously stored public upload path; failures are non-fatal. */
+    void delete(String publicUrl);
 }

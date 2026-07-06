@@ -3,6 +3,7 @@ package ru.msu.cmc.alumnihub.tag.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.msu.cmc.alumnihub.common.exception.BadRequestException;
+import ru.msu.cmc.alumnihub.common.exception.ConflictException;
 import ru.msu.cmc.alumnihub.common.exception.NotFoundException;
 import ru.msu.cmc.alumnihub.tag.dto.TagDto;
 import ru.msu.cmc.alumnihub.tag.dto.TagRequest;
@@ -33,7 +34,7 @@ public class TagService {
     @Transactional
     public TagDto create(TagRequest request) {
         if (tagRepository.existsBySlug(request.slug())) {
-            throw new BadRequestException("Тег с таким slug уже существует");
+            throw new ConflictException("Тег с таким slug уже существует");
         }
         Tag tag = new Tag();
         apply(tag, request);
@@ -44,7 +45,7 @@ public class TagService {
     public TagDto update(Long id, TagRequest request) {
         Tag tag = getTag(id);
         if (!tag.getSlug().equals(request.slug()) && tagRepository.existsBySlug(request.slug())) {
-            throw new BadRequestException("Тег с таким slug уже существует");
+            throw new ConflictException("Тег с таким slug уже существует");
         }
         apply(tag, request);
         return TagDto.from(tag);

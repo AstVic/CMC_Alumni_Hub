@@ -59,7 +59,7 @@ public class AdminBootstrapRunner implements ApplicationRunner {
         user.setEnabled(true);
         user.setOwner(true); // the first admin is the main admin (owner)
         userRepository.save(user);
-        log.info("Bootstrapped initial admin (owner) account: {}", email);
+        log.info("Bootstrapped initial admin owner userId={}", user.getId());
     }
 
     /** If admins exist but none is the owner, promote the earliest admin. */
@@ -70,7 +70,7 @@ public class AdminBootstrapRunner implements ApplicationRunner {
         userRepository.findFirstByRoleOrderByIdAsc(Role.ADMIN).ifPresent(admin -> {
             admin.setOwner(true);
             userRepository.save(admin);
-            log.info("Promoted admin {} to owner (no owner was set).", admin.getEmail());
+            log.info("Promoted admin userId={} to owner (no owner was set).", admin.getId());
         });
     }
 }

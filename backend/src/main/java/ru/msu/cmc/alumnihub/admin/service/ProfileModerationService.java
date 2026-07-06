@@ -1,5 +1,7 @@
 package ru.msu.cmc.alumnihub.admin.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.msu.cmc.alumnihub.common.exception.BadRequestException;
@@ -20,6 +22,8 @@ import java.util.List;
  */
 @Service
 public class ProfileModerationService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProfileModerationService.class);
 
     private final AlumniProfileRepository profileRepository;
     private final ModerationLogService moderationLogService;
@@ -53,6 +57,7 @@ public class ProfileModerationService {
         profile.setPublishedAt(Instant.now());
         moderationLogService.log(ModerationEntityType.PROFILE, profile.getId(),
                 ModeratorType.ADMIN, "APPROVED", null);
+        log.info("Profile moderation id={} decision=APPROVED", profile.getId());
         return AlumniProfileDto.from(profile);
     }
 
@@ -66,6 +71,7 @@ public class ProfileModerationService {
         profile.setModerationComment(comment);
         moderationLogService.log(ModerationEntityType.PROFILE, profile.getId(),
                 ModeratorType.ADMIN, "REJECTED", comment);
+        log.info("Profile moderation id={} decision=REJECTED", profile.getId());
         return AlumniProfileDto.from(profile);
     }
 

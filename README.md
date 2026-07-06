@@ -105,8 +105,10 @@ docker compose up --build
 
 ### Email и SMTP
 
-По умолчанию, если SMTP не настроен, приложение использует **логирующую
-заглушку** — письмо (вместе со ссылкой-приглашением) выводится в лог backend:
+Если SMTP не настроен, приложение использует безопасную заглушку: оно явно
+предупреждает в логах, что письмо не доставлено, но **не выводит** адрес целиком,
+тело письма или одноразовый invite-токен. Для проверки полного invite flow
+настройте тестовый SMTP.
 
 ```bash
 docker compose logs -f backend
@@ -204,10 +206,12 @@ backend/                     Spring Boot приложение
   src/main/java/ru/msu/cmc/alumnihub/
     user/ invite/ profile/ tag/ question/ moderation/   # feature-пакеты
     security/ config/ common/ email/ storage/ admin/
-  src/main/resources/db/migration/                       # Flyway V1–V5
+  src/main/resources/db/migration/                       # Flyway migrations
 frontend/                    React + Vite приложение
   src/api/ auth/ components/ pages/ hooks/ router/ types/
 docker-compose.yml           локальный стек (с PostgreSQL)
+docker-compose.prod.yml      production стек (внешняя PostgreSQL)
+DEPLOYMENT.md                production checklist
 docker-compose.prod.yml      production (облачная PostgreSQL)
 .env.example                 шаблон переменных окружения
 ```

@@ -2,6 +2,8 @@ package ru.msu.cmc.alumnihub.profile.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import ru.msu.cmc.alumnihub.common.exception.BadRequestException;
 import ru.msu.cmc.alumnihub.common.exception.NotFoundException;
@@ -82,9 +84,33 @@ public class AlumniProfileService {
     @Transactional
     public AlumniProfileDto updatePhoto(Long userId, MultipartFile file) {
         AlumniProfile profile = requireProfile(userId);
+        String previousUrl = profile.getPhotoUrl();
         String url = storageService.storeImage(file);
         profile.setPhotoUrl(url);
+        schedulePhotoCleanup(previousUrl, url);
         return AlumniProfileDto.from(profile);
+    }
+
+    private void schedulePhotoCleanup(String previousUrl, String newUrl) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            storageService.delete(previousUrl);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (previousUrl != null && !previousUrl.equals(newUrl)) {
+                    storageService.delete(previousUrl);
+                }
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status != STATUS_COMMITTED) {
+                    storageService.delete(newUrl);
+                }
+            }
+        });
     }
 
     private Set<Tag> resolveTags(Set<String> slugs) {

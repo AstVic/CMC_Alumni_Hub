@@ -31,9 +31,10 @@ public class SmtpEmailService implements EmailService {
             message.setSubject(subject);
             message.setText(body);
             mailSender.send(message);
-            log.info("Email sent to {}", to);
+            log.info("Email sent successfully");
         } catch (Exception ex) {
-            log.error("Failed to send email to {}: {}", to, ex.getMessage());
+            log.error("SMTP delivery failed ({})", ex.getClass().getSimpleName());
+            log.debug("SMTP delivery failure details", ex);
             throw new ApiException(HttpStatus.BAD_GATEWAY, "Не удалось отправить письмо");
         }
     }
