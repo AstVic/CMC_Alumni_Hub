@@ -59,6 +59,12 @@ public class Question {
     @Column(name = "is_read_by_alumni", nullable = false)
     private boolean readByAlumni = false;
 
+    @Column(name = "answer_text", columnDefinition = "text")
+    private String answerText;
+
+    @Column(name = "answered_at")
+    private Instant answeredAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

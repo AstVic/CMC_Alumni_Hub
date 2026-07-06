@@ -13,6 +13,8 @@ public record QuestionDto(
         String senderEmail,
         String questionText,
         boolean read,
+        String answerText,
+        Instant answeredAt,
         Instant createdAt) {
 
     public static QuestionDto from(Question q) {
@@ -22,6 +24,8 @@ public record QuestionDto(
                 q.getSenderEmail(),
                 q.getQuestionText(),
                 q.isReadByAlumni(),
+                q.getAnswerText(),
+                q.getAnsweredAt(),
                 q.getCreatedAt());
     }
 }

@@ -1,11 +1,14 @@
 package ru.msu.cmc.alumnihub.question.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.msu.cmc.alumnihub.question.dto.AnswerQuestionRequest;
 import ru.msu.cmc.alumnihub.question.dto.QuestionDto;
 import ru.msu.cmc.alumnihub.question.service.QuestionService;
 import ru.msu.cmc.alumnihub.security.CurrentUserService;
@@ -36,5 +39,11 @@ public class AlumniQuestionController {
     @PatchMapping("/{id}/read")
     public QuestionDto markRead(@PathVariable Long id) {
         return questionService.markRead(currentUserService.requireCurrentUserId(), id);
+    }
+
+    @PatchMapping("/{id}/answer")
+    public QuestionDto answer(@PathVariable Long id, @Valid @RequestBody AnswerQuestionRequest request) {
+        return questionService.answer(
+                currentUserService.requireCurrentUserId(), id, request.answerText());
     }
 }
