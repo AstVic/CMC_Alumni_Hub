@@ -1,10 +1,9 @@
--- Demo/seed data for showcasing the MVP.
--- All seeded accounts share the password: admin123
--- (BCrypt hash below). Change credentials before any real deployment.
-
--- ---- Admin ----
-INSERT INTO users (email, password_hash, role, enabled) VALUES
- ('admin@cmc.msu.ru', '$2a$10$T4dl.LggT803QaUsdJHf7e1i5eQGtLDOIleiGQAtnUNedJNsZkUtS', 'ADMIN', true);
+-- Demo dataset for showcasing the MVP. Loaded at startup ONLY when
+-- app.seed-demo=true, and only if no alumni exist yet (see DemoDataSeeder).
+-- NOT executed in production.
+--
+-- Requires: the admin account (bootstrapped separately) and reference tags
+-- (Flyway V5) to already exist. All demo alumni share the password: admin123
 
 -- ---- Alumni accounts ----
 INSERT INTO users (email, password_hash, role, enabled) VALUES
@@ -14,26 +13,6 @@ INSERT INTO users (email, password_hash, role, enabled) VALUES
  ('grigory@demo.cmc', '$2a$10$T4dl.LggT803QaUsdJHf7e1i5eQGtLDOIleiGQAtnUNedJNsZkUtS', 'ALUMNI', true),
  ('darya@demo.cmc',   '$2a$10$T4dl.LggT803QaUsdJHf7e1i5eQGtLDOIleiGQAtnUNedJNsZkUtS', 'ALUMNI', true),
  ('egor@demo.cmc',    '$2a$10$T4dl.LggT803QaUsdJHf7e1i5eQGtLDOIleiGQAtnUNedJNsZkUtS', 'ALUMNI', true);
-
--- ---- Tags ----
-INSERT INTO tags (name, slug, category) VALUES
- ('Backend',            'backend',            'Роль'),
- ('Frontend',           'frontend',           'Роль'),
- ('DevOps',             'devops',             'Роль'),
- ('QA',                 'qa',                 'Роль'),
- ('Тестирование',       'testing',            'Роль'),
- ('Data Science',       'data-science',       'Направление'),
- ('ML',                 'ml',                 'Направление'),
- ('Аналитика',          'analytics',          'Направление'),
- ('Product Management',  'product-management', 'Роль'),
- ('GameDev',            'gamedev',            'Направление'),
- ('Cybersecurity',      'cybersecurity',      'Направление'),
- ('Research',           'research',           'Направление'),
- ('C++',                'cpp',                'Технология'),
- ('Java',               'java',               'Технология'),
- ('Python',             'python',             'Технология'),
- ('Startups',           'startups',           'Индустрия'),
- ('Big Tech',           'big-tech',           'Индустрия');
 
 -- ---- Profiles (linked to users by email) ----
 INSERT INTO alumni_profiles
@@ -111,21 +90,19 @@ INSERT INTO alumni_profile_tags (profile_id, tag_id)
 SELECT p.id, t.id FROM alumni_profiles p JOIN users u ON u.id = p.user_id, tags t
 WHERE u.email = 'egor@demo.cmc'    AND t.slug IN ('cybersecurity', 'research');
 
--- ---- Invitations (various statuses) ----
+-- ---- Invitations (various statuses), created by the admin ----
 INSERT INTO alumni_invites (email, token_hash, status, created_by_admin_id, expires_at, used_at, revoked_at, note)
-SELECT 'invited1@demo.cmc', 'seedhash_sent_0001',    'SENT',    a.id, now() + interval '5 day', NULL, NULL, 'Ожидает регистрации' FROM users a WHERE a.email='admin@cmc.msu.ru';
+SELECT 'invited1@demo.cmc', 'seedhash_sent_0001',    'SENT',    a.id, now() + interval '5 day', NULL, NULL, 'Ожидает регистрации' FROM users a WHERE a.role='ADMIN' ORDER BY a.id LIMIT 1;
 INSERT INTO alumni_invites (email, token_hash, status, created_by_admin_id, expires_at, used_at, revoked_at, note)
-SELECT 'invited2@demo.cmc', 'seedhash_created_0002', 'CREATED', a.id, now() + interval '7 day', NULL, NULL, NULL FROM users a WHERE a.email='admin@cmc.msu.ru';
+SELECT 'invited2@demo.cmc', 'seedhash_created_0002', 'CREATED', a.id, now() + interval '7 day', NULL, NULL, NULL FROM users a WHERE a.role='ADMIN' ORDER BY a.id LIMIT 1;
 INSERT INTO alumni_invites (email, token_hash, status, created_by_admin_id, expires_at, used_at, revoked_at, note)
-SELECT 'anna@demo.cmc',     'seedhash_used_0003',    'USED',    a.id, now() - interval '20 day', now() - interval '25 day', NULL, 'Зарегистрировалась' FROM users a WHERE a.email='admin@cmc.msu.ru';
+SELECT 'anna@demo.cmc',     'seedhash_used_0003',    'USED',    a.id, now() - interval '20 day', now() - interval '25 day', NULL, 'Зарегистрировалась' FROM users a WHERE a.role='ADMIN' ORDER BY a.id LIMIT 1;
 INSERT INTO alumni_invites (email, token_hash, status, created_by_admin_id, expires_at, used_at, revoked_at, note)
-SELECT 'expired@demo.cmc',  'seedhash_expired_0004', 'EXPIRED', a.id, now() - interval '3 day', NULL, NULL, NULL FROM users a WHERE a.email='admin@cmc.msu.ru';
+SELECT 'expired@demo.cmc',  'seedhash_expired_0004', 'EXPIRED', a.id, now() - interval '3 day', NULL, NULL, NULL FROM users a WHERE a.role='ADMIN' ORDER BY a.id LIMIT 1;
 INSERT INTO alumni_invites (email, token_hash, status, created_by_admin_id, expires_at, used_at, revoked_at, note)
-SELECT 'revoked@demo.cmc',  'seedhash_revoked_0005', 'REVOKED', a.id, now() + interval '4 day', NULL, now() - interval '1 day', 'Отозвано по ошибке' FROM users a WHERE a.email='admin@cmc.msu.ru';
+SELECT 'revoked@demo.cmc',  'seedhash_revoked_0005', 'REVOKED', a.id, now() + interval '4 day', NULL, now() - interval '1 day', 'Отозвано по ошибке' FROM users a WHERE a.role='ADMIN' ORDER BY a.id LIMIT 1;
 
--- ---- Questions ----
--- Helper pattern: link by alumni email. Statuses show every part of the flow.
--- Anna: 3 visible (mix read/unread), 1 pending admin review, 1 AI-rejected.
+-- ---- Questions (cover the full status flow) ----
 INSERT INTO questions (alumni_profile_id, sender_name, sender_email, question_text, status, ai_moderation_status, is_read_by_alumni)
 SELECT p.id, 'Иван', 'ivan@student.msu', 'Как вы попали в Yandex и что помогло вырасти до лида?', 'VISIBLE_TO_ALUMNI', 'APPROVED', false
  FROM alumni_profiles p JOIN users u ON u.id=p.user_id WHERE u.email='anna@demo.cmc';
@@ -142,12 +119,10 @@ INSERT INTO questions (alumni_profile_id, sender_name, sender_email, question_te
 SELECT p.id, NULL, NULL, 'заходите на http://spam.example купить дёшево', 'AI_REJECTED', 'REJECTED', 'Сообщение содержит ссылки или рекламу'
  FROM alumni_profiles p JOIN users u ON u.id=p.user_id WHERE u.email='anna@demo.cmc';
 
--- Boris: 1 visible.
 INSERT INTO questions (alumni_profile_id, sender_name, sender_email, question_text, status, ai_moderation_status, is_read_by_alumni)
 SELECT p.id, 'Алексей', NULL, 'React или Vue для нового проекта в 2026?', 'VISIBLE_TO_ALUMNI', 'APPROVED', false
  FROM alumni_profiles p JOIN users u ON u.id=p.user_id WHERE u.email='boris@demo.cmc';
 
--- Vera: 5 visible.
 INSERT INTO questions (alumni_profile_id, sender_name, sender_email, question_text, status, ai_moderation_status, is_read_by_alumni)
 SELECT p.id, 'Ольга', NULL, 'С чего начать путь в ML, если я на 3 курсе?', 'VISIBLE_TO_ALUMNI', 'APPROVED', false
  FROM alumni_profiles p JOIN users u ON u.id=p.user_id WHERE u.email='vera@demo.cmc';
@@ -164,7 +139,6 @@ INSERT INTO questions (alumni_profile_id, sender_name, sender_email, question_te
 SELECT p.id, NULL, NULL, 'Стоит ли идти в аспирантуру ради ML-исследований?', 'VISIBLE_TO_ALUMNI', 'APPROVED', false
  FROM alumni_profiles p JOIN users u ON u.id=p.user_id WHERE u.email='vera@demo.cmc';
 
--- Darya: 2 visible.
 INSERT INTO questions (alumni_profile_id, sender_name, sender_email, question_text, status, ai_moderation_status, is_read_by_alumni)
 SELECT p.id, 'Игорь', NULL, 'Как перейти из аналитика в продакт-менеджеры?', 'VISIBLE_TO_ALUMNI', 'APPROVED', false
  FROM alumni_profiles p JOIN users u ON u.id=p.user_id WHERE u.email='darya@demo.cmc';

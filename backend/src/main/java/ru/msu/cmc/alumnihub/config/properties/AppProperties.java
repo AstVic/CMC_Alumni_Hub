@@ -8,11 +8,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app")
 public record AppProperties(
         String frontendUrl,
+        boolean seedDemo,
+        Admin admin,
         Jwt jwt,
         Invite invite,
         Mail mail,
         Storage storage,
         Moderation moderation) {
+
+    /** Bootstrap admin created on first start if no admin exists. */
+    public record Admin(String email, String password) {
+    }
 
     public record Jwt(
             String secret,
