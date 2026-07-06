@@ -15,8 +15,6 @@ Thumbs.db
 
 # ---- Java / Maven (backend) ----
 backend/target/
-backend/.mvn/
-!backend/.mvn/wrapper/maven-wrapper.properties
 *.class
 *.log
 
