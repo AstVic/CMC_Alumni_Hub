@@ -4,6 +4,7 @@ import type {
   PageResponse,
   ProfileCard,
   ProfileDetail,
+  PublicQuestion,
   Tag,
   TokenResponse,
 } from '../types';
@@ -46,6 +47,10 @@ export const publicApi = {
   },
   async getProfile(id: number): Promise<ProfileDetail> {
     const { data } = await http.get<ProfileDetail>(`/public/profiles/${id}`);
+    return data;
+  },
+  async listProfileQuestions(id: number): Promise<PublicQuestion[]> {
+    const { data } = await http.get<PublicQuestion[]>(`/public/profiles/${id}/questions`);
     return data;
   },
   async listTags(): Promise<Tag[]> {

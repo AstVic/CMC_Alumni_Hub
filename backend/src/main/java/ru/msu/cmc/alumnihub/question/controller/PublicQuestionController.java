@@ -3,6 +3,7 @@ package ru.msu.cmc.alumnihub.question.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,8 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.msu.cmc.alumnihub.question.dto.CreateQuestionRequest;
+import ru.msu.cmc.alumnihub.question.dto.PublicQuestionDto;
 import ru.msu.cmc.alumnihub.question.dto.QuestionSubmissionResponse;
 import ru.msu.cmc.alumnihub.question.service.QuestionService;
+
+import java.util.List;
 
 /**
  * Public submission of questions to a specific alumni profile.
@@ -24,6 +28,11 @@ public class PublicQuestionController {
 
     public PublicQuestionController(QuestionService questionService) {
         this.questionService = questionService;
+    }
+
+    @GetMapping
+    public List<PublicQuestionDto> list(@PathVariable Long profileId) {
+        return questionService.listPublicForProfile(profileId);
     }
 
     @PostMapping

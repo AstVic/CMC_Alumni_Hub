@@ -30,4 +30,10 @@ export const alumniApi = {
     const { data } = await http.patch<AlumniQuestion>(`/alumni/questions/${id}/read`);
     return data;
   },
+  async answerQuestion(id: number, answerText: string): Promise<AlumniQuestion> {
+    const { data } = await http.patch<AlumniQuestion>(`/alumni/questions/${id}/answer`, {
+      answerText,
+    });
+    return data;
+  },
 };

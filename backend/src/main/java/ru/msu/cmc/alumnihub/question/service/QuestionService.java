@@ -19,6 +19,7 @@ import ru.msu.cmc.alumnihub.profile.entity.ProfileStatus;
 import ru.msu.cmc.alumnihub.profile.repository.AlumniProfileRepository;
 import ru.msu.cmc.alumnihub.question.dto.AdminQuestionDto;
 import ru.msu.cmc.alumnihub.question.dto.CreateQuestionRequest;
+import ru.msu.cmc.alumnihub.question.dto.PublicQuestionDto;
 import ru.msu.cmc.alumnihub.question.dto.QuestionDto;
 import ru.msu.cmc.alumnihub.question.dto.QuestionSubmissionResponse;
 import ru.msu.cmc.alumnihub.question.entity.AiModerationStatus;
@@ -155,6 +156,42 @@ public class QuestionService {
         }
         question.setReadByAlumni(true);
         return QuestionDto.from(question);
+    }
+
+    @Transactional
+    public QuestionDto answer(Long userId, Long questionId, String answerText) {
+        Long profileId = requireProfileId(userId);
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new NotFoundException("Вопрос не найден"));
+        if (!question.getAlumniProfileId().equals(profileId)) {
+            throw new ForbiddenException("Это не ваш вопрос");
+        }
+        if (question.getStatus() != QuestionStatus.VISIBLE_TO_ALUMNI) {
+            throw new BadRequestException("Ответить можно только на одобренный вопрос");
+        }
+        question.setAnswerText(answerText.trim());
+        question.setAnsweredAt(java.time.Instant.now());
+        question.setReadByAlumni(true);
+        log.info("Alumni answered question id={}", question.getId());
+        return QuestionDto.from(question);
+    }
+
+    // ---- Public catalog Q&A ----
+
+    @Transactional(readOnly = true)
+    public List<PublicQuestionDto> listPublicForProfile(Long profileId) {
+        // Only approved questions of a published profile are shown publicly.
+        boolean published = profileRepository.findById(profileId)
+                .map(p -> p.getStatus() == ProfileStatus.PUBLISHED)
+                .orElse(false);
+        if (!published) {
+            return List.of();
+        }
+        return questionRepository
+                .findByAlumniProfileIdAndStatusOrderByCreatedAtDesc(profileId, QuestionStatus.VISIBLE_TO_ALUMNI)
+                .stream()
+                .map(PublicQuestionDto::from)
+                .toList();
     }
 
     // ---- Admin ----

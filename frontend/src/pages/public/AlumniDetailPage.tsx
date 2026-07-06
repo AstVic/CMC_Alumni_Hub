@@ -5,7 +5,7 @@ import { Avatar } from '../../components/catalog/Avatar';
 import { TagBadge } from '../../components/ui/Badge';
 import { QuestionForm } from '../../components/question/QuestionForm';
 import { LoadingState, ErrorState } from '../../components/ui/States';
-import { questionLabel } from '../../utils/format';
+import { questionLabel, formatDate } from '../../utils/format';
 
 export function AlumniDetailPage() {
   const { id } = useParams();
@@ -14,6 +14,12 @@ export function AlumniDetailPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['profile', profileId],
     queryFn: () => publicApi.getProfile(profileId),
+    enabled: Number.isFinite(profileId),
+  });
+
+  const { data: questions } = useQuery({
+    queryKey: ['profile', profileId, 'questions'],
+    queryFn: () => publicApi.listProfileQuestions(profileId),
     enabled: Number.isFinite(profileId),
   });
 
@@ -63,6 +69,45 @@ export function AlumniDetailPage() {
           )}
           {data.interestsDescription && (
             <Section title="Профессиональные интересы">{data.interestsDescription}</Section>
+          )}
+
+          {questions && questions.length > 0 && (
+            <div className="rounded-2xl bg-white p-6 shadow-card">
+              <h2 className="mb-4 text-lg font-semibold text-brand-950">
+                Вопросы и ответы
+              </h2>
+              <div className="space-y-4">
+                {questions.map((q) => (
+                  <div key={q.id} className="border-b border-surface-border pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5 select-none font-semibold text-brand-400">В:</span>
+                      <div>
+                        <p className="text-brand-900">{q.questionText}</p>
+                        <p className="mt-0.5 text-xs text-brand-900/40">
+                          {q.senderName || 'Аноним'} · {formatDate(q.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    {q.answerText ? (
+                      <div className="mt-2 flex items-start gap-2">
+                        <span className="mt-0.5 select-none font-semibold text-accent-500">О:</span>
+                        <div>
+                          <p className="whitespace-pre-line text-brand-900/80">{q.answerText}</p>
+                          <p className="mt-0.5 text-xs text-brand-900/40">
+                            {data.fullName}
+                            {q.answeredAt ? ` · ${formatDate(q.answeredAt)}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-2 pl-6 text-sm italic text-brand-900/40">
+                        Выпускник пока не ответил.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 

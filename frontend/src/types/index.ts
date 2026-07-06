@@ -137,7 +137,18 @@ export interface AlumniQuestion {
   senderEmail: string | null;
   questionText: string;
   read: boolean;
+  answerText: string | null;
+  answeredAt: string | null;
   createdAt: string;
+}
+
+export interface PublicQuestion {
+  id: number;
+  senderName: string | null;
+  questionText: string;
+  answerText: string | null;
+  createdAt: string;
+  answeredAt: string | null;
 }
 
 export type QuestionStatus =
