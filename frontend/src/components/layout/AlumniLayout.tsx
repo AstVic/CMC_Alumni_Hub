@@ -4,6 +4,7 @@ const ITEMS: NavItem[] = [
   { to: '/alumni', label: 'Обзор', end: true },
   { to: '/alumni/profile', label: 'Моя карточка' },
   { to: '/alumni/questions', label: 'Вопросы' },
+  { to: '/alumni/security', label: 'Безопасность' },
 ];
 
 export function AlumniLayout() {

@@ -76,6 +76,11 @@ export function LoginPage() {
             Войти
           </Button>
         </form>
+        <div className="mt-4 text-center">
+          <Link to="/forgot-password" className="text-sm text-brand-600 hover:text-brand-700">
+            Забыли пароль?
+          </Link>
+        </div>
       </div>
 
       <p className="mt-6 text-center text-sm text-brand-900/50">

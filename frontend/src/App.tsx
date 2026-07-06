@@ -8,11 +8,14 @@ import { CatalogPage } from './pages/public/CatalogPage';
 import { AlumniDetailPage } from './pages/public/AlumniDetailPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { InviteRegisterPage } from './pages/auth/InviteRegisterPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { AlumniLayout } from './components/layout/AlumniLayout';
 import { OnboardingPage } from './pages/alumni/OnboardingPage';
 import { AlumniDashboardPage } from './pages/alumni/AlumniDashboardPage';
 import { ProfileEditPage } from './pages/alumni/ProfileEditPage';
 import { AlumniQuestionsPage } from './pages/alumni/AlumniQuestionsPage';
+import { AlumniSecurityPage } from './pages/alumni/AlumniSecurityPage';
 import { ProtectedRoute } from './router/ProtectedRoute';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
@@ -38,6 +41,8 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/invite/register" element={<InviteRegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
               {/* Alumni onboarding (no sidebar) */}
               <Route
@@ -61,6 +66,7 @@ export default function App() {
                 <Route index element={<AlumniDashboardPage />} />
                 <Route path="profile" element={<ProfileEditPage />} />
                 <Route path="questions" element={<AlumniQuestionsPage />} />
+                <Route path="security" element={<AlumniSecurityPage />} />
               </Route>
 
               {/* Admin panel */}
