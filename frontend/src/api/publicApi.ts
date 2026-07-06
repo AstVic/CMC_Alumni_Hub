@@ -66,4 +66,15 @@ export const publicApi = {
     const { data } = await http.post<TokenResponse>('/public/auth/register-by-invite', payload);
     return data;
   },
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const { data } = await http.post<{ message: string }>('/public/auth/forgot-password', { email });
+    return data;
+  },
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    newPasswordConfirm: string,
+  ): Promise<void> {
+    await http.post('/public/auth/reset-password', { token, newPassword, newPasswordConfirm });
+  },
 };

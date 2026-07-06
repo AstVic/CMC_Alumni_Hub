@@ -1,6 +1,6 @@
 import { ChangePasswordForm } from '../../components/account/ChangePasswordForm';
 
-export function AdminSecurityPage() {
+export function AlumniSecurityPage() {
   return (
     <div className="space-y-6">
       <div>
