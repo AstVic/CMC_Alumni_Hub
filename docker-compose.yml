@@ -33,6 +33,9 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-alumnihub}
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me-please-0123456789-abcdef}
       APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:5173}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@cmc.msu.ru}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      APP_SEED_DEMO: ${APP_SEED_DEMO:-true}
       INVITE_EXPIRY_DAYS: ${INVITE_EXPIRY_DAYS:-7}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}

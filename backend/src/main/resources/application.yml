@@ -51,6 +51,12 @@ server:
 # Application-specific settings (bound via @ConfigurationProperties).
 app:
   frontend-url: ${APP_FRONTEND_URL:http://localhost:5173}
+  # Load demo alumni/cards/questions on startup (demo only, never in prod).
+  seed-demo: ${APP_SEED_DEMO:false}
+  # Initial admin created on first start if no admin exists (all environments).
+  admin:
+    email: ${ADMIN_EMAIL:admin@cmc.msu.ru}
+    password: ${ADMIN_PASSWORD:admin123}
   jwt:
     secret: ${JWT_SECRET}
     access-token-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:60}
