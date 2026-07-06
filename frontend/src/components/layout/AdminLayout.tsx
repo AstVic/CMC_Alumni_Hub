@@ -8,6 +8,7 @@ const BASE_ITEMS: NavItem[] = [
   { to: '/admin/profiles', label: 'Модерация карточек' },
   { to: '/admin/questions', label: 'Вопросы' },
   { to: '/admin/tags', label: 'Теги' },
+  { to: '/admin/security', label: 'Безопасность' },
 ];
 
 export function AdminLayout() {

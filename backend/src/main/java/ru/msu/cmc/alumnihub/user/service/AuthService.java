@@ -4,10 +4,14 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.msu.cmc.alumnihub.common.exception.BadRequestException;
 import ru.msu.cmc.alumnihub.common.exception.ForbiddenException;
+import ru.msu.cmc.alumnihub.common.exception.NotFoundException;
 import ru.msu.cmc.alumnihub.security.JwtService;
+import ru.msu.cmc.alumnihub.user.dto.ChangePasswordRequest;
 import ru.msu.cmc.alumnihub.user.dto.LoginRequest;
 import ru.msu.cmc.alumnihub.user.dto.TokenResponse;
 import ru.msu.cmc.alumnihub.user.dto.UserDto;
@@ -23,13 +27,29 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthService(AuthenticationManager authenticationManager,
                        JwtService jwtService,
-                       UserRepository userRepository) {
+                       UserRepository userRepository,
+                       PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new BadRequestException("Неверный текущий пароль");
+        }
+        if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
+            throw new BadRequestException("Новый пароль должен отличаться от текущего");
+        }
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     }
 
     public TokenResponse login(LoginRequest request) {

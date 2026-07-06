@@ -14,6 +14,7 @@ import ru.msu.cmc.alumnihub.invite.dto.CreateInviteRequest;
 import ru.msu.cmc.alumnihub.invite.dto.InviteDto;
 import ru.msu.cmc.alumnihub.invite.service.InviteService;
 import ru.msu.cmc.alumnihub.security.CurrentUserService;
+import ru.msu.cmc.alumnihub.user.entity.Role;
 
 import java.util.List;
 
@@ -35,21 +36,22 @@ public class AdminInviteController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public InviteDto create(@Valid @RequestBody CreateInviteRequest request) {
-        return inviteService.createInvite(request, currentUserService.requireCurrentUserId());
+        return inviteService.createInvite(
+                request, currentUserService.requireCurrentUserId(), Role.ALUMNI);
     }
 
     @GetMapping
     public List<InviteDto> list() {
-        return inviteService.listInvites();
+        return inviteService.listInvites(Role.ALUMNI);
     }
 
     @PostMapping("/{id}/resend")
     public InviteDto resend(@PathVariable Long id) {
-        return inviteService.resend(id);
+        return inviteService.resend(id, Role.ALUMNI);
     }
 
     @PatchMapping("/{id}/revoke")
     public InviteDto revoke(@PathVariable Long id) {
-        return inviteService.revoke(id);
+        return inviteService.revoke(id, Role.ALUMNI);
     }
 }

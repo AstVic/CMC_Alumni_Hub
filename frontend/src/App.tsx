@@ -22,6 +22,7 @@ import { AdminProfileModerationPage } from './pages/admin/AdminProfileModeration
 import { AdminQuestionsPage } from './pages/admin/AdminQuestionsPage';
 import { AdminTagsPage } from './pages/admin/AdminTagsPage';
 import { AdminAdminsPage } from './pages/admin/AdminAdminsPage';
+import { AdminSecurityPage } from './pages/admin/AdminSecurityPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -78,6 +79,7 @@ export default function App() {
                 <Route path="questions" element={<AdminQuestionsPage />} />
                 <Route path="tags" element={<AdminTagsPage />} />
                 <Route path="admins" element={<AdminAdminsPage />} />
+                <Route path="security" element={<AdminSecurityPage />} />
               </Route>
 
               <Route element={<PublicLayout />}>
