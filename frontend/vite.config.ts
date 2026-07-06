@@ -7,6 +7,11 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    proxy: {
+      // Photos are referenced as /uploads/... relative to the frontend origin;
+      // proxy them to the backend during `npm run dev`.
+      '/uploads': 'http://localhost:8080',
+    },
   },
   preview: {
     host: true,

@@ -2,12 +2,13 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build
 
-# Cache dependencies first for faster rebuilds.
+# Cache dependencies first for faster rebuilds. Tolerate transient resolution
+# hiccups here — the package step below fetches anything still missing.
 COPY pom.xml .
-RUN mvn -q dependency:go-offline
+RUN mvn -B -q dependency:go-offline || true
 
 COPY src ./src
-RUN mvn -q clean package -DskipTests
+RUN mvn -B -q clean package -DskipTests
 
 # ---- Runtime stage ----
 FROM eclipse-temurin:21-jre-alpine
