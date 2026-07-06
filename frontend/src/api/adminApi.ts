@@ -1,5 +1,6 @@
 import { http } from './httpClient';
 import type {
+  AdminAccount,
   AdminAlumni,
   AdminQuestion,
   AlumniProfile,
@@ -100,6 +101,26 @@ export const adminApi = {
   },
   async rejectQuestion(id: number, comment?: string): Promise<AdminQuestion> {
     const { data } = await http.patch<AdminQuestion>(`/admin/questions/${id}/reject`, { comment });
+    return data;
+  },
+
+  // Admin accounts (owner only)
+  async listAdmins(): Promise<AdminAccount[]> {
+    const { data } = await http.get<AdminAccount[]>('/admin/admins');
+    return data;
+  },
+  async createAdmin(email: string, password: string): Promise<AdminAccount> {
+    const { data } = await http.post<AdminAccount>('/admin/admins', { email, password });
+    return data;
+  },
+  async setAdminBlocked(id: number, blocked: boolean): Promise<AdminAccount> {
+    const { data } = await http.patch<AdminAccount>(`/admin/admins/${id}/block`, null, {
+      params: { blocked },
+    });
+    return data;
+  },
+  async transferOwnership(id: number): Promise<AdminAccount> {
+    const { data } = await http.patch<AdminAccount>(`/admin/admins/${id}/transfer-ownership`);
     return data;
   },
 

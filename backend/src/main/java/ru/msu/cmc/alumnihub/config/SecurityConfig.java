@@ -62,6 +62,8 @@ public class SecurityConfig {
                         .permitAll()
                         // Uploaded photos are served statically and are public.
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        // Managing other admins is restricted to the owner (main admin).
+                        .requestMatchers("/api/admin/admins/**").hasRole("OWNER")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/alumni/**").hasRole("ALUMNI")
                         .anyRequest().authenticated())
