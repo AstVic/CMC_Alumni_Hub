@@ -32,3 +32,6 @@ yarn-error.log*
 # ---- Uploads (local photo storage) ----
 uploads/
 backend/uploads/
+
+# Added by ggshield
+.cache_ggshield

@@ -1,0 +1,28 @@
+# GitGuardian / ggshield configuration.
+#
+# The entries below silence KNOWN false positives: these are documented demo
+# defaults and placeholder values that intentionally live in example/template
+# files (.env.example, README.md, docker-compose.yml). They are NOT real
+# secrets — the real .env with production credentials is gitignored and never
+# committed.
+#
+# Ignores are pinned to each finding's SHA, so any NEW real secret is still
+# detected.
+version: 2
+
+secret:
+  ignored-matches:
+    # .env.example — local Postgres demo credentials (alumnihub/alumnihub) and
+    # the Neon connection-string example.
+    - name: "Demo Postgres credentials in .env.example (local defaults)"
+      match: f57d5a85faf5729f2d4797a167d2aa37dcadbf4ab80c7d591c613b9a92f99138
+
+    # docker-compose.yml — ADMIN_PASSWORD local demo default (admin123),
+    # only used for the local showcase; production requires it from the env.
+    - name: "Demo admin password default in docker-compose.yml (local only)"
+      match: 7299f5337bd1b924fee684539964b6ef2403ed824388962b308b0a6b3cfbe028
+
+    # README.md — placeholder SMTP credentials (your-app-password) in the
+    # deployment instructions.
+    - name: "Placeholder SMTP credentials in README.md"
+      match: 7aea65d117c304e2756735f4f9a8eda33f2ab91f3bbeef75246e668e7bf0a8fe
