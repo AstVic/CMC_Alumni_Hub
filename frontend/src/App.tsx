@@ -21,6 +21,7 @@ import { AdminAlumniPage } from './pages/admin/AdminAlumniPage';
 import { AdminProfileModerationPage } from './pages/admin/AdminProfileModerationPage';
 import { AdminQuestionsPage } from './pages/admin/AdminQuestionsPage';
 import { AdminTagsPage } from './pages/admin/AdminTagsPage';
+import { AdminAdminsPage } from './pages/admin/AdminAdminsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -76,6 +77,7 @@ export default function App() {
                 <Route path="profiles" element={<AdminProfileModerationPage />} />
                 <Route path="questions" element={<AdminQuestionsPage />} />
                 <Route path="tags" element={<AdminTagsPage />} />
+                <Route path="admins" element={<AdminAdminsPage />} />
               </Route>
 
               <Route element={<PublicLayout />}>

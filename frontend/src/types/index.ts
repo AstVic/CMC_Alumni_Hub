@@ -7,6 +7,15 @@ export interface User {
   email: string;
   role: Role;
   enabled: boolean;
+  owner: boolean;
+}
+
+export interface AdminAccount {
+  id: number;
+  email: string;
+  enabled: boolean;
+  owner: boolean;
+  createdAt: string;
 }
 
 export interface TokenResponse {

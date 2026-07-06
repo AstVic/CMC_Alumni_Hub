@@ -43,6 +43,10 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    /** The single "main admin" (owner). Only meaningful for ADMIN users. */
+    @Column(nullable = false)
+    private boolean owner = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

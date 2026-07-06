@@ -40,6 +40,7 @@ public class AdminBootstrapRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (userRepository.countByRole(Role.ADMIN) > 0) {
+            ensureOwnerExists();
             return;
         }
         AppProperties.Admin admin = appProperties.admin();
@@ -56,7 +57,20 @@ public class AdminBootstrapRunner implements ApplicationRunner {
         user.setPasswordHash(passwordEncoder.encode(admin.password()));
         user.setRole(Role.ADMIN);
         user.setEnabled(true);
+        user.setOwner(true); // the first admin is the main admin (owner)
         userRepository.save(user);
-        log.info("Bootstrapped initial admin account: {}", email);
+        log.info("Bootstrapped initial admin (owner) account: {}", email);
+    }
+
+    /** If admins exist but none is the owner, promote the earliest admin. */
+    private void ensureOwnerExists() {
+        if (userRepository.existsByRoleAndOwnerTrue(Role.ADMIN)) {
+            return;
+        }
+        userRepository.findFirstByRoleOrderByIdAsc(Role.ADMIN).ifPresent(admin -> {
+            admin.setOwner(true);
+            userRepository.save(admin);
+            log.info("Promoted admin {} to owner (no owner was set).", admin.getEmail());
+        });
     }
 }
